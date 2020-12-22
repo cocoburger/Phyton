@@ -1,0 +1,61 @@
+#이미지 한 개 크롤링 
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+import time # 사진 크롤링 시 지연시간
+import urllib.request # 사진 다운로드 라이브러리
+
+driver = webdriver.Chrome()
+driver.get("https://www.google.co.kr/imghp?hl=ko&tab=wi&ogbl")
+elem = driver.find_element_by_name("q") # 검색창과 f12 누르면 태그가 나온다. class와 name이 나오는데 "q"가 나온다.
+elem.send_keys("burger") # 검색
+elem.send_keys(Keys.RETURN)
+driver.find_elements_by_css_selector(".rg_i.Q4LuWd")[0].click()  # 대괄호에 있는 0은 첫번째 사진이다. (".rg_i.Q4LuWd") 클래스라서 "." 해주고 i와 Q4L사이도 "."으로 이어준다.
+print(driver.find_element_by_css_selector("n3VNCb").get_attribute("src")) # 다운로드 해주는 코드다.
+
+
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+import time 
+import urllib.request # 이미지 url 다운로드
+
+driver = webdriver.Chrome()
+driver.get("https://www.google.co.kr/imghp?hl=ko&tab=wi&ogbl")
+elem = driver.find_element_by_name("q")
+elem.send_keys("burger")
+elem.send_keys(Keys.RETURN)
+
+SCROLL_PAUSE_TIME = 1
+
+# Get scroll height
+last_height = driver.execute_script("return document.body.scrollHeight") # javascript를 실행하는 코드이다. \
+브라우저의 높이를 알 수 있는 코드다  브라우저의 높이를 자바스크립트로 찾아서 last height에 저장해준다.
+
+while True: # 무한반복 해준다.
+    # Scroll down to bottom 
+    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);") # 브라우저 끝까지 스크롤을 내리겠다.
+
+    # Wait to load page
+    time.sleep(SCROLL_PAUSE_TIME) # 0.5초 동안 페이지 로딩 기다린다
+
+    # Calculate new scroll height and compare with last scroll height
+    new_height = driver.execute_script("return document.body.scrollHeight") # 브라우저의 높이를 새로 구해진다.
+    if new_height == last_height: # 더 이상 내려올게없다. 빠져나온다.
+        try: # 함수이다. try except 구문 error 가 났을 때 이렇게 처리하겠다. 
+            driver.find_element_by_css_selector(".mye4qd").click()
+        except:
+            break     #break로 빠져나가질 않으면, 다음 코드를 실행할 수 없다.
+    last_height = new_height 
+
+images = driver.find_elements_by_css_selector(".rg_i.Q4LuWd")
+count = 1
+for image in images:
+  try: 
+      image.click()
+      time.sleep(5)
+      imgUrl = driver.find_element_by_css_selector(".n3VNCb").get_attribute("src")
+      urllib.request.urlretrieve(imgUrl, str(count) + ".jpg")
+    count = count + 1
+  except:
+      pass
+
+driver.close()
